@@ -125,7 +125,7 @@ class ImapLibrary(object):
         - ``encoding``:   Body encoding. E.g. ``quoted-printable` or ``utf-8``
 
         Examples:
-        | Get Email Body | INDEX | encoding=utf-8 |
+        | Get Email Body | INDEX | encoding |
         """
         if self._is_walking_multipart(email_index):
             body = self.get_multipart_payload(decode=True)
@@ -147,7 +147,7 @@ class ImapLibrary(object):
         """
         body = self.get_email_body(email_index)
         return findall(r'href=[\'"]?([^\'" >]+)', body)
-    
+
 
     def get_matches_from_email(self, email_index, pattern):
         """Returns all Regular Expression ``pattern`` found in the email body
