@@ -85,6 +85,7 @@ class ImapLibrary(object):
         self._mp_iter = None
         self._mp_msg = None
         self._part = None
+        self._body_encoding = None
 
     def close_mailbox(self):
         """Close IMAP email client session.
@@ -116,16 +117,15 @@ class ImapLibrary(object):
         self._imap.uid('store', email_index, '+FLAGS', r'(\DELETED)')
         self._imap.expunge()
 
-    def get_email_body(self, email_index, encoding='utf-8'):
+    def get_email_body(self, email_index):
         """Returns the decoded email body on multipart email message,
         otherwise returns the body text.
 
         Arguments:
         - ``email_index``: An email index to identity the email message.
-        - ``encoding``:   Body encoding. E.g. ``quoted-printable` or ``utf-8``
 
         Examples:
-        | Get Email Body | INDEX | encoding |
+        | Get Email Body | INDEX | 
         """
         if self._is_walking_multipart(email_index):
             body = self.get_multipart_payload(decode=True)
@@ -133,7 +133,7 @@ class ImapLibrary(object):
             body = self._imap.uid('fetch',
                                   email_index,
                                   '(BODY[TEXT])')[1][0][1].\
-                decode(str(encoding))
+                decode(str(self._body_encoding))
         return body
 
     def get_links_from_email(self, email_index):
@@ -275,6 +275,7 @@ class ImapLibrary(object):
         - ``port``: The IMAP port number. (Default None)
         - ``user``: The username to be use to authenticate mailbox on given ``host``.
         - ``folder``: The email folder to read from. (Default INBOX)
+        - ``body_encoding``:   Email body encoding. E.g. ``quoted-printable` or ``utf-8`` (Default ``utf-8``)
 
         Examples:
         | Open Mailbox | host=HOST | user=USER | password=SECRET |
@@ -286,10 +287,12 @@ class ImapLibrary(object):
         is_secure = kwargs.pop('is_secure', 'True') == 'True'
         port = int(kwargs.pop('port', self.PORT_SECURE if is_secure else self.PORT))
         folder = '"%s"' % str(kwargs.pop('folder', self.FOLDER))
+        body_encoding = kwargs.pop('body_encoding', 'utf-8')
         self._imap = IMAP4_SSL(host, port) if is_secure else IMAP4(host, port)
         self._imap.login(kwargs.pop('user', None), kwargs.pop('password', None))
         self._imap.select(folder)
         self._init_multipart_walk()
+        self._body_encoding = body_encoding
 
     def wait_for_email(self, **kwargs):
         """Wait for email message to arrived base on any given filter criteria.
