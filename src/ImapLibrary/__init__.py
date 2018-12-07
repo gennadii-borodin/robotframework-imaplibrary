@@ -116,7 +116,7 @@ class ImapLibrary(object):
         self._imap.uid('store', email_index, '+FLAGS', r'(\DELETED)')
         self._imap.expunge()
 
-    def get_email_body(self, email_index, encoding):
+    def get_email_body(self, email_index, encoding='utf-8'):
         """Returns the decoded email body on multipart email message,
         otherwise returns the body text.
 
@@ -125,7 +125,7 @@ class ImapLibrary(object):
         - ``encoding``:   Body encoding. E.g. ``quoted-printable` or ``utf-8``
 
         Examples:
-        | Get Email Body | INDEX | encoding |
+        | Get Email Body | INDEX | encoding=utf-8 |
         """
         if self._is_walking_multipart(email_index):
             body = self.get_multipart_payload(decode=True)
@@ -147,6 +147,7 @@ class ImapLibrary(object):
         """
         body = self.get_email_body(email_index)
         return findall(r'href=[\'"]?([^\'" >]+)', body)
+    
 
     def get_matches_from_email(self, email_index, pattern):
         """Returns all Regular Expression ``pattern`` found in the email body
